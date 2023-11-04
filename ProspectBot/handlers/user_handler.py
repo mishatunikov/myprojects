@@ -6,6 +6,7 @@ from keyboards.keyboard import create_keyboard_start
 from keyboards.inline_keyboard import inline_keyboard_cost, inline_keyboard_using_app, inline_keyboard_about, inline_keyboard_order, inline_keyboard_faq
 from states.states import db_clients, add_client_db
 from service.service import calculate_cost
+from filters.filters import can_calculate
 
 router = Router()
 
@@ -31,17 +32,20 @@ async def process_help_command(message: Message):
 @router.message(F.text == 'Рассчитать стоимость')
 async def start_calculate(message: Message|CallbackQuery):
     # переводим клиента в состояние рассчета
+    # Нужно добавить проверку на наличии в базе
     db_clients[message.from_user.id]['calculate'] = True
     if isinstance(message, Message):
-        await message.answer(text='Введите стоимость в юанях.')
+        await message.answer(text='<b>Введите стоимость в юанях.</b>\n\n'
+                                  '<i>*Используйте <b>пробел</b> для рассчета нескольких позиций.</i>')
     else:
-        await message.message.answer(text='Введите стоимость в юанях.')
+        await message.message.answer(text='<b>Введите стоимость в юанях.</b>\n\n'
+                                  '<i>*Используйте <b>пробел</b> для рассчета нескольких позиций.</i>')
 
 # Обработка данных цены
-@router.message(lambda message: message.text.isdigit() and db_clients[message.from_user.id]['calculate'])
+@router.message(can_calculate)
 async def give_cost(message: Message):
     # рассчет цены
-    cost = await calculate_cost(int(message.text))
+    cost = await calculate_cost(message.text)
     keyboard = await inline_keyboard_cost()
     await message.answer(text=cost, reply_markup=keyboard)
     db_clients[message.from_user.id]['calculate'] = False
@@ -84,3 +88,6 @@ async def using_app(message: Message):
     await message.answer(text=LEXICON[message.text], reply_markup=kb)
 
 
+@router.callback_query(F.data == 'delivery_cost')
+async def delivery_cost(callback: CallbackQuery):
+    await callback.answer(text=LEXICON['Какова цена доставки?'], show_alert=True)

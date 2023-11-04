@@ -7,8 +7,9 @@ async def inline_keyboard_cost() -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
     kb_builder.add(*[InlineKeyboardButton(text=LEXICON['back'], callback_data='back'),
                      InlineKeyboardButton(text=LEXICON['calculate_again'], callback_data='calculate_again'),
+                     InlineKeyboardButton(text=LEXICON['delivery_cost'], callback_data='delivery_cost'),
                      InlineKeyboardButton(text=LEXICON['order'], url='https://t.me/prospecthelp')])
-    kb_builder.adjust(2)
+    kb_builder.adjust(2, 1)
     return kb_builder.as_markup()
 
 async def inline_keyboard_using_app() -> InlineKeyboardMarkup:
