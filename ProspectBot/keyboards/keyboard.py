@@ -10,4 +10,3 @@ def create_keyboard_start(text: str) -> ReplyKeyboardMarkup:
                                 one_time_keyboard=True)
 
 
-

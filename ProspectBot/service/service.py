@@ -6,7 +6,7 @@ exchange_rate = 14.6
 # ¥
 async def calculate_cost(cost_yuan: str) -> str:
     s = lambda p: f'Стоимость товара без учета доставки: <b>{p} ₽</b>'
-    cost = lambda c: max(exchange_rate * int(c) * 1.09, exchange_rate * int(c) + 400)
+    cost = lambda c: max(exchange_rate * int(c) * 1.09, exchange_rate * int(c) + 400) if int(cost_yuan) else 0
     if len(cost_yuan.split()) > 1:
         return '\n\n'.join(map(lambda x: f'<b>{x[0]}) {x[1]} ¥</b>\n{s(ceil(ceil(cost(x[1]))/100) * 100)}',
                                enumerate(cost_yuan.split(), start=1)))

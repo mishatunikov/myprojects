@@ -12,6 +12,7 @@ async def inline_keyboard_cost() -> InlineKeyboardMarkup:
     kb_builder.adjust(2, 1)
     return kb_builder.as_markup()
 
+
 async def inline_keyboard_using_app() -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
     kb_builder.add(*[InlineKeyboardButton(text=LEXICON['using_app'], url=URLS['using_app']),
@@ -21,12 +22,14 @@ async def inline_keyboard_using_app() -> InlineKeyboardMarkup:
     kb_builder.adjust(1, 2, 1)
     return kb_builder.as_markup()
 
+
 async def inline_keyboard_order() -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
     kb_builder.add(*[InlineKeyboardButton(text=LEXICON['how_order'], url=URLS['order']),
                      InlineKeyboardButton(text=LEXICON['back'], callback_data='back')])
     kb_builder.adjust(1, 2, 1)
     return kb_builder.as_markup()
+
 
 async def inline_keyboard_faq() -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
@@ -35,7 +38,19 @@ async def inline_keyboard_faq() -> InlineKeyboardMarkup:
     kb_builder.adjust(1, 2, 1)
     return kb_builder.as_markup()
 
+
 async def inline_keyboard_about() -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
     kb_builder.add(InlineKeyboardButton(text=LEXICON['back'], callback_data='back'))
+    return kb_builder.as_markup()
+
+
+async def subscribe() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='Подписаться',
+                                                                     url='https://t.me/prospect_community')]])
+    return kb
+
+async def inline_keyboard_cancel() -> InlineKeyboardMarkup:
+    kb_builder = InlineKeyboardBuilder()
+    kb_builder.add(InlineKeyboardButton(text='Отмена', callback_data='back'))
     return kb_builder.as_markup()
