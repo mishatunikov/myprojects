@@ -11,7 +11,7 @@ from filters.filters import can_calculate
 
 router = Router()
 
-
+# Сделать проверку на статусы при нажатии на оставшейся клавиатуре
 # Обработка команды /start
 @router.message(CommandStart())
 async def process_start_command(message: Message):
@@ -58,14 +58,12 @@ async def give_cost(message: Message):
 # Отправляет на повторный рассчет цены
 @router.callback_query(F.data == 'calculate_again')
 async def calculate_again(callback: CallbackQuery):
-    # db_clients[callback.from_user.id]['calculate'] = True
     await callback.message.delete()
     await start_calculate(callback)
 
 
 @router.callback_query(F.data == 'back')
 async def back(callback: CallbackQuery):
-    # await callback.message.edit_text('<b>Вы вернулись в главное меню</b>')
     await callback.message.delete()
     await callback.message.answer(text=LEXICON['main_menu'],
                                   reply_markup=create_keyboard_start('/start'))
