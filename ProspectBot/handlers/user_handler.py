@@ -2,71 +2,71 @@ from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 from aiogram.filters import Command, CommandStart
 from lexicon.lexicon import LEXICON
 from aiogram import Router, F
-from keyboards.keyboard import create_keyboard_start
-from keyboards.inline_keyboard import inline_keyboard_cost, inline_keyboard_using_app, inline_keyboard_about, \
+from keyboards.keyboard import create_keyboard_start_usr
+from keyboards.inline_keyboard_usr import inline_keyboard_cost, inline_keyboard_using_app, inline_keyboard_about, \
     inline_keyboard_order, inline_keyboard_faq, inline_keyboard_cancel
-from states.states import db_clients, add_client_db
-from service.service import calculate_cost
-from filters.filters import can_calculate
+from service.calculation import calculate_cost
+from aiogram.fsm.context import FSMContext
+from fsm import fsm
+from aiogram.filters import StateFilter
+from db import db
+
 
 router = Router()
+
 
 # Сделать проверку на статусы при нажатии на оставшейся клавиатуре
 # Обработка команды /start
 @router.message(CommandStart())
-async def process_start_command(message: Message):
-    # клиент добавляется в базу данных
-    add_client_db(message)
+async def process_start_command(message: Message, state: FSMContext):
+    await db.add_client(message.chat.id, message.from_user.username)
+    await state.clear()
+    await message.delete()
     await message.answer(text=LEXICON[message.text](message),
-                         reply_markup=create_keyboard_start(message.text))
+                         reply_markup=create_keyboard_start_usr(message.text))
 
 
 # Обработка команды /help
 @router.message(Command(commands='help'))
-async def process_help_command(message: Message):
-    # клиент добавляется в базу данных
-    add_client_db(message)
+async def process_help_command(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer(text=LEXICON['/help'], reply_markup=ReplyKeyboardRemove())
 
 
 # Обработки кнопки рассчитать стоимость
 @router.message(F.text == 'Рассчитать стоимость')
-async def start_calculate(message: Message | CallbackQuery):
-    # переводим клиента в состояние рассчета
-    # Нужно добавить проверку на наличии в базе
-    db_clients[message.from_user.id]['calculate'] = True
+async def start_calculate(message: Message | CallbackQuery, state: FSMContext):
+    await state.set_state(fsm.FSMclient.calculation)
     if isinstance(message, Message):
         await message.answer(text='<b>Введите стоимость в юанях.</b>\n\n'
-                                  '<i>*Используйте <b>пробел</b> для рассчета нескольких позиций.</i>',
-                             reply_markup=await inline_keyboard_cancel())
+                                  '<i>*Используйте <b>пробел</b> для рассчета нескольких позиций.</i>')
     else:
         await message.message.answer(text='<b>Введите стоимость в юанях.</b>\n\n'
-                                          '<i>*Используйте <b>пробел</b> для рассчета нескольких позиций.</i>',
-                                     reply_markup=await inline_keyboard_cancel())
+                                          '<i>*Используйте <b>пробел</b> для рассчета нескольких позиций.</i>')
 
 
 # Обработка данных цены
-@router.message(can_calculate)
-async def give_cost(message: Message):
-    # рассчет цены
-    cost = await calculate_cost(message.text)
+@router.message(StateFilter(fsm.FSMclient.calculation))
+async def give_cost(message: Message, state: FSMContext):
+    cost = await calculate_cost(message.text, message)
     keyboard = await inline_keyboard_cost()
     await message.answer(text=cost, reply_markup=keyboard)
-    db_clients[message.from_user.id]['calculate'] = False
+    await state.set_state()
 
 
 # Отправляет на повторный рассчет цены
 @router.callback_query(F.data == 'calculate_again')
-async def calculate_again(callback: CallbackQuery):
-    await callback.message.delete()
-    await start_calculate(callback)
+async def calculate_again(callback: CallbackQuery, state: FSMContext):
+    await callback.message.delete_reply_markup()
+    await start_calculate(callback, state)
 
 
 @router.callback_query(F.data == 'back')
-async def back(callback: CallbackQuery):
-    await callback.message.delete()
+async def back(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.delete_reply_markup()
     await callback.message.answer(text=LEXICON['main_menu'],
-                                  reply_markup=create_keyboard_start('/start'))
+                                  reply_markup=create_keyboard_start_usr('/start'))
 
 
 @router.message(F.text == 'Как пользоваться Poizon?')

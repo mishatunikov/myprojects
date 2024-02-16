@@ -50,7 +50,10 @@ async def subscribe() -> InlineKeyboardMarkup:
                                                                      url='https://t.me/prospect_community')]])
     return kb
 
+
 async def inline_keyboard_cancel() -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
     kb_builder.add(InlineKeyboardButton(text='Отмена', callback_data='back'))
     return kb_builder.as_markup()
+
+
