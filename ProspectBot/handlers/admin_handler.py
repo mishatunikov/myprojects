@@ -60,12 +60,9 @@ async def start_calculate(message: Message | CallbackQuery, state: FSMContext):
 async def give_cost(message: Message, state: FSMContext):
     cost = await calculate_cost(message.text, message)
     keyboard = await inline_keyboard_cost()
-    s = f'Курс: <b>1¥ | {await db.give_rate()}₽</b>\n' \
-        f'Комиссия: <b>{await db.give_commission()}%</b>\n\n' \
-        f'{cost}'
     await message.answer(text=f'Курс: <b>1¥ | {await db.give_rate()}₽</b>\n' \
-                              f'Комиссия: <b>{await db.give_commission()}%</b>\n\n' \
-                              f'{cost}', reply_markup=keyboard)
+                              f'Комиссия: <b>{await db.give_commission()}%</b>\n\n')
+    await message.answer(text=f'{cost}', reply_markup=keyboard)
     await state.set_state()
 
 
